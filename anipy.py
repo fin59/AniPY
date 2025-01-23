@@ -31,8 +31,8 @@ class AppGUI:
 
         self.menu_options = ["Strona Główna", "Szukaj", "Profil", "Zaloguj Się"]
         for option in self.menu_options:
-            button=tk.Button(self.nav_bar,text=option, command=lambda opt=option: self.change_main_panel(opt))
-            button.pack(fill="x")
+            button=tk.Button(self.nav_bar,text=option,font=("Arial", 22),bg="#101424",fg="white",relief="flat", command=lambda opt=option: self.change_main_panel(opt))
+            button.pack(fill="x",pady=10)
         self.change_main_panel(self.menu_options[0])
 
         self.root.mainloop()
@@ -47,6 +47,10 @@ class AppGUI:
             label.pack(pady=20)
             self.home_scrollable_frame = tk.Frame(self.main_panel, bg="#182434")
             self.home_scrollable_frame.pack(fill="both", expand=True)
+
+            #self.scrollbar = tk.Scrollbar(self.home_scrollable_frame)
+            #self.scrollbar.pack(side="right", fill="y")
+            #self.scrollbar.config(command=self.home_scrollable_frame.yview)
 
             self.anilist_api.load_trending_anime()
         elif option == "Szukaj":
