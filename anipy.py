@@ -54,14 +54,45 @@ class AppGUI:
 
             self.anilist_api.load_trending_anime()
         elif option == "Szukaj":
-            print()
+            label = tk.Label(self.main_panel, text="Szukaj Anime", font=("Arial", 22),bg="#182434",fg="white")
+            label.pack(pady=5)
+
+            self.search_var = tk.StringVar()
+            search_entry = tk.Entry(self.main_panel, textvariable=self.search_var, font=("Arial", 22), width=50)
+            search_entry.pack(pady=5)
+
+            search_button = tk.Button(self.main_panel,text="Szukaj",font=("Arial", 20),bg="#101424",fg="white",
+                relief="flat",command=self.execute_search
+            )
+            search_button.pack(pady=5)
+
+            self.search_results_frame = tk.Frame(self.main_panel, bg="#182434")
+            self.search_results_frame.pack(fill="both", expand=True)
+
+
         elif option == "Profil":
             print()
         elif option == "Zaloguj Się":
             print()
 
-    def display_anime(self, title, image_url):
-        frame = tk.Frame(self.home_scrollable_frame, relief="ridge", borderwidth=2, bg="#101424")
+    def execute_search(self):
+        query_text = self.search_var.get().strip()
+        if query_text:
+            for widget in self.search_results_frame.winfo_children():
+                widget.destroy()
+            results = self.anilist_api.search_anime(query_text)
+            if results is not None:
+                for anime_data in results:
+                    title = anime_data["title"]["romaji"]
+                    image_url = anime_data["coverImage"]["large"]
+                    self.display_anime(title, image_url, self.search_results_frame)
+            else:
+                tk.Label(self.search_results_frame, text="Brak wyników lub błąd.", bg="#182434", fg="white").pack(
+                    pady=10)
+
+
+    def display_anime(self, title, image_url,parent_frame):
+        frame = tk.Frame(parent_frame, relief="ridge", borderwidth=2, bg="#101424")
         frame.pack(pady=5, padx=10, fill="x")
 
         try:
@@ -82,6 +113,7 @@ class AppGUI:
         title_label.pack(side="left", fill="x", padx=10)
 
 
+
 class AnilistAPI:
     def __init__(self, app_gui):
         self.app_gui = app_gui
@@ -94,6 +126,7 @@ class AnilistAPI:
             'Authorization': f'Bearer {access_token}'
         }
         return headers
+
 
     def load_trending_anime(self):
         query = """
@@ -117,7 +150,29 @@ class AnilistAPI:
             for anime in data["data"]["Page"]["media"]:
                 title = anime["title"]["romaji"]
                 image_url = anime["coverImage"]["large"]
-                self.app_gui.display_anime(title, image_url)
+                self.app_gui.display_anime(title, image_url, self.app_gui.home_scrollable_frame)
+
+    def search_anime(self,title):
+        query = """
+                query ($search: String) {
+                  Page(page: 1, perPage: 10) {
+                    media(search: $search, type: ANIME) {
+                      id
+                      title {
+                        romaji
+                      }
+                      coverImage {
+                        large
+                      }
+                    }
+                  }
+                }
+                """
+        variables = {"search": title}
+        response = requests.post(api_url, json={"query": query, "variables": variables})
+        if response.status_code == 200:
+            data = response.json()
+            return data["data"]["Page"]["media"]
 
 
 if __name__ == "__main__":
