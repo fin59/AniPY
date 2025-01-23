@@ -72,7 +72,10 @@ class AppGUI:
 
         elif option == "Profil":
             if self.anilist_api.headers and self.anilist_api.user_data:
-                print("działa")
+                user_label = tk.Label(self.main_panel,text=f"Zalogowany: {self.anilist_api.user_data.get('name', '---')}",
+                    font=("Arial", 22),bg="#182434",fg="white"
+                )
+                user_label.pack(pady=10)
             else:
                 (tk.Label(self.main_panel, text="Użytkownik niezalogowany.", font=("Arial", 22),bg="#182434", fg="white")
                 .pack(pady=20))
