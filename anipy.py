@@ -71,9 +71,13 @@ class AppGUI:
 
 
         elif option == "Profil":
-            print()
+            if self.anilist_api.headers and self.anilist_api.user_data:
+                print("działa")
+            else:
+                (tk.Label(self.main_panel, text="Użytkownik niezalogowany.", font=("Arial", 22),bg="#182434", fg="white")
+                .pack(pady=20))
         elif option == "Zaloguj Się":
-            print()
+            self.anilist_api.login()
 
     def execute_search(self):
         query_text = self.search_var.get().strip()
@@ -117,6 +121,8 @@ class AppGUI:
 class AnilistAPI:
     def __init__(self, app_gui):
         self.app_gui = app_gui
+        self.headers = None
+        self.user_data = None
 
     def get_token(self):
         webbrowser.open(auth_url)
@@ -127,6 +133,28 @@ class AnilistAPI:
         }
         return headers
 
+    def login(self):
+        self.headers = self.get_token()
+        self.get_user_data()
+
+    def get_user_data(self):
+        query = """
+        query {
+          Viewer {
+            id
+            name
+            avatar {
+              large
+            }
+          }
+        }
+        """
+        response = requests.post(api_url, json={"query": query}, headers=self.headers)
+        if response.status_code == 200:
+            data = response.json()
+            self.user_data = data["data"]["Viewer"]
+        else:
+            print("Nie udało sie pobrać danych")
 
     def load_trending_anime(self):
         query = """
